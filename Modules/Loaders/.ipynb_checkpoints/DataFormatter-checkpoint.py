@@ -20,7 +20,7 @@ def load_cell_migration_data(file_path, initial_density_idx=0, plot=False):
     """
 
     # Predefined density levels
-    densities = [0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
+    densities = [0.3]
     density = densities[initial_density_idx]
     density_key = f'dens_{density}'
 
@@ -39,12 +39,22 @@ def load_cell_migration_data(file_path, initial_density_idx=0, plot=False):
 
     # Optional plotting
     if plot:
+
+        #downsample
+        time_step = 10
+        space_step = 4 
+
+        #downsample arrays
+        X_plot= X[::time_step, ::space_step]
+        T_plot= T[::time_step, ::space_step]
+        U_plot= U[::time_step, ::space_step]
+        
         from mpl_toolkits.mplot3d import Axes3D
         from matplotlib import cm
 
         fig = plt.figure(figsize=(10, 7))
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(X, T, U, cmap=cm.viridis, alpha=0.9)
+        ax.plot_surface(X_plot, T_plot, U_plot, cmap=cm.coolwarm, alpha=0.9)
         ax.set_title(f"Cell Migration Density (Initial Density: {density})")
         ax.set_xlabel("Position (space)")
         ax.set_ylabel("Time (days)")
