@@ -361,5 +361,50 @@ class BINN(nn.Module):
         
         return self.gls_loss_val + self.pde_loss_val
 
-   
+    def evaluate_losses(self, pred, true):
+        """
+        Returns GLS loss, PDE loss, and constraint loss individually.
+        Useful for diagnostics and visualization.
+        
+        Args:
+            pred (torch.Tensor): Predicted u values (from surface fitter)
+            true (torch.Tensor): Ground truth u values
+        
+        Returns:
+            dict: {
+                'total': total loss,
+                'gls': GLS loss,
+                'pde': PDE loss,
+                'constraints': constraint loss
+            }
+        """
+        inputs = self.inputs  # use cached inputs from forward pass
+    
+        # Compute GLS loss
+        gls = self.surface_weight * self.gls_loss(pred, true)
+    
+        # Sample input space for PDE evaluation
+        x = torch.rand(self.num_samples, 1, requires_grad=True)
+        x = x * (self.x_max - self.x_min) + self.x_min
+        t = torch.rand(self.num_samples, 1, requires_grad=True)
+        t = t * (self.t_max - self.t_min) + self.t_min
+        inputs_rand = torch.cat([x, t], dim=1).float().to(inputs.device)
+    
+        # Evaluate predicted surface at sampled points
+        outputs_rand = self.surface_fitter(inputs_rand)
+    
+        # Get PDE and constraint terms separately
+        pde_term, constraint_term = self.pde_loss(inputs_rand, outputs_rand, return_mean=False)
+        pde = self.pde_weight * pde_term
+        constraints = constraint_term  # already weighted
+    
+        total = gls + pde + constraints
+    
+        return {
+            'total': total.item(),
+            'gls': gls.item(),
+            'pde': pde.item(),
+            'constraints': constraints.item()
+        }
+
 

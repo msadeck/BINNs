@@ -32,29 +32,41 @@ def load_cell_migration_data(file_path, initial_density_idx=0, plot=False):
     T = file[density_key]['T']
     U = file[density_key]['U']
     shape = U.shape  # (num_t, num_x)
+    print('data shapes',X.shape,T.shape,U.shape)
+    print(X)
+    print(T)
+    print(U)
+    #downsample
+    time_step = 10
+    space_step = 6
+
+    #downsample arrays
+    X2= X[::time_step, ::space_step]
+    T2= T[::time_step, ::space_step]
+    U2= U[::time_step, ::space_step]
 
     # Flatten for BINNs input
-    inputs = np.concatenate([X.reshape(-1, 1), T.reshape(-1, 1)], axis=1)
-    outputs = U.reshape(-1, 1)
+    inputs = np.concatenate([X2.reshape(-1, 1), T2.reshape(-1, 1)], axis=1)
+    outputs = U2.reshape(-1, 1)
 
     # Optional plotting
     if plot:
 
         #downsample
-        time_step = 10
-        space_step = 4 
+        #time_step = 10
+        #space_step = 4 
 
         #downsample arrays
-        X_plot= X[::time_step, ::space_step]
-        T_plot= T[::time_step, ::space_step]
-        U_plot= U[::time_step, ::space_step]
+        #X_plot= X[::time_step, ::space_step]
+        #T_plot= T[::time_step, ::space_step]
+        #U_plot= U[::time_step, ::space_step]
         
         from mpl_toolkits.mplot3d import Axes3D
         from matplotlib import cm
 
         fig = plt.figure(figsize=(10, 7))
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(X_plot, T_plot, U_plot, cmap=cm.coolwarm, alpha=0.9)
+        ax.plot_surface(X2, T2, U2, cmap=cm.coolwarm, alpha=0.9)
         ax.set_title(f"Cell Migration Density (Initial Density: {density})")
         ax.set_xlabel("Position (space)")
         ax.set_ylabel("Time (days)")
